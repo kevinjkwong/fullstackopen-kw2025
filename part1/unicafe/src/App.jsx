@@ -2,76 +2,71 @@ import { useState } from "react";
 
 const Button = ({ onClick, name }) => <button onClick={onClick}>{name}</button>;
 
-const Header = ({ name, options }) => {
-  return (
-    <>
-      <h1>{name}</h1>
-      <div>
-        {options.map((option) => (
-          <Button
-            key={option.name}
-            onClick={option.handleClick}
-            name={option.name}
-          />
-        ))}
-      </div>
-    </>
-  );
-};
-
-const Statistic = ({ name, total }) => (
-  <p>
-    {name} {total}
-  </p>
+const Header = ({ name, options }) => (
+  <>
+    <h1>{name}</h1>
+    {options.map(({ name, handleClick }) => (
+      <Button key={name} onClick={handleClick} name={name} />
+    ))}
+  </>
 );
 
-const Statistics = ({ options }) => {
-  return (
-    <>
-      <h2>statistics</h2>
-      {options.map((option) => (
-        <Statistic key={option.name} name={option.name} total={option.total} />
-      ))}
-    </>
-  );
-};
+const Statistic = ({ name, total }) => (
+  <tr>
+    <td>{name}</td>
+    <td>{total}</td>
+  </tr>
+);
+
+const Statistics = ({ options }) => (
+  <>
+    <h2>statistics</h2>
+    <table>
+      <tbody>
+        {options.map(({ name, total }) => (
+          <Statistic key={name} name={name} total={total} />
+        ))}
+      </tbody>
+    </table>
+  </>
+);
 
 const App = () => {
-  const [goodTotal, setGoodTotal] = useState(0);
-  const [neutralTotal, setNeutralTotal] = useState(0);
-  const [badTotal, setBadTotal] = useState(0);
+  const [feedbackCounts, setFeedbackCounts] = useState({
+    good: 0,
+    neutral: 0,
+    bad: 0,
+  });
 
-  const handleGoodClick = () =>
-    setGoodTotal((prevGoodTotal) => prevGoodTotal + 1);
-  const handleNeutralClick = () =>
-    setNeutralTotal((prevNeutralTotal) => prevNeutralTotal + 1);
-  const handleBadClick = () => setBadTotal((prevBadTotal) => prevBadTotal + 1);
-
-  const feedback = {
-    name: "give feedback",
-    options: [
-      {
-        name: "good",
-        total: goodTotal,
-        handleClick: handleGoodClick,
-      },
-      {
-        name: "neutral",
-        total: neutralTotal,
-        handleClick: handleNeutralClick,
-      },
-      {
-        name: "bad",
-        total: badTotal,
-        handleClick: handleBadClick,
-      },
-    ],
+  const handleFeedbackClick = (type) => () => {
+    setFeedbackCounts((prevCounts) => ({
+      ...prevCounts,
+      [type]: prevCounts[type] + 1,
+    }));
   };
+
+  const feedbackOptions = [
+    {
+      name: "good",
+      total: feedbackCounts.good,
+      handleClick: handleFeedbackClick("good"),
+    },
+    {
+      name: "neutral",
+      total: feedbackCounts.neutral,
+      handleClick: handleFeedbackClick("neutral"),
+    },
+    {
+      name: "bad",
+      total: feedbackCounts.bad,
+      handleClick: handleFeedbackClick("bad"),
+    },
+  ];
 
   return (
     <div>
-      <Header name={feedback.name} options={feedback.options} />
-      <Statistics options={feedback.options} />
+      <Header name="give feedback" options={feedbackOptions} />
+      <Statistics options={feedbackOptions} />
     </div>
   );
 };
