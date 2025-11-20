@@ -65,6 +65,15 @@ const Statistic = ({ name, count, unit = "" }) => (
 const Statistics = ({ counts, derivedStats }) => {
   const { total, average, positivePercentage } = derivedStats;
 
+  if (total === 0) {
+    return (
+      <>
+        <h2>statistics</h2>
+        <p>No feedback given</p>
+      </>
+    );
+  }
+
   return (
     <>
       <h2>statistics</h2>
