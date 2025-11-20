@@ -1,66 +1,81 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+
+const useFeedbackLogic = () => {
+  const [counts, setCounts] = useState({ good: 0, neutral: 0, bad: 0 });
+
+  const handleFeedbackClick = (type) => () => {
+    setCounts((prevCounts) => ({
+      ...prevCounts,
+      [type]: prevCounts[type] + 1,
+    }));
+  };
+
+  const derivedStats = useMemo(() => {
+    const { good, neutral, bad } = counts;
+    const total = good + neutral + bad;
+
+    if (total === 0) {
+      return {
+        total,
+        average: 0,
+        positivePercentage: 0,
+      };
+    }
+
+    const average = (good * 1 + bad * -1) / total;
+    const positivePercentage = (good / total) * 100;
+
+    return {
+      total,
+      average: average.toFixed(2),
+      positivePercentage: positivePercentage.toFixed(2),
+    };
+  }, [counts]);
+
+  const buttonOptions = [
+    { name: "good", handleClick: handleFeedbackClick("good") },
+    { name: "neutral", handleClick: handleFeedbackClick("neutral") },
+    { name: "bad", handleClick: handleFeedbackClick("bad") },
+  ];
+
+  return { counts, derivedStats, buttonOptions };
+};
 
 const Button = ({ onClick, name }) => <button onClick={onClick}>{name}</button>;
 
-const Header = ({ name, options }) => (
+const Buttons = ({ options }) => (
   <>
-    <h1>{name}</h1>
     {options.map(({ name, handleClick }) => (
       <Button key={name} onClick={handleClick} name={name} />
     ))}
   </>
 );
 
-const Statistic = ({ name, count }) => {
-  if (name === "positive") {
-    return (
-      <tr>
-        <td>{name}</td>
-        <td>{count} %</td>
-      </tr>
-    );
-  }
-  return (
-    <tr>
-      <td>{name}</td>
-      <td>{count}</td>
-    </tr>
-  );
-};
+const Header = ({ name }) => <h1>{name}</h1>;
 
-const Statistics = ({ options }) => {
-  const totalCount = options.reduce((total, option) => total + option.count, 0);
-  const goodCount = options[0].count;
-  const badCount = options[2].count;
-  const average = (goodCount * 1 + badCount * -1) / totalCount;
-  const positivePercentage = (goodCount / totalCount) * 100;
+const Statistic = ({ name, count, unit = "" }) => (
+  <tr>
+    <td>{name}</td>
+    <td>
+      {count} {unit}
+    </td>
+  </tr>
+);
 
-  useEffect(() => {
-    console.log(`current total feedback count is ${totalCount}`);
-    console.log(`current average is ${average}`);
-    console.log(`current positive percentage is ${positivePercentage}`);
-  }, [totalCount, average, positivePercentage]);
-
-  if (totalCount === 0) {
-    return (
-      <>
-        <h2>statistics</h2>
-        <p>No feedback has been provided yet</p>
-      </>
-    );
-  }
+const Statistics = ({ counts, derivedStats }) => {
+  const { total, average, positivePercentage } = derivedStats;
 
   return (
     <>
       <h2>statistics</h2>
       <table>
         <tbody>
-          {options.map(({ name, count }) => (
-            <Statistic key={name} name={name} count={count} />
-          ))}
-          <Statistic name="all" count={totalCount} />
+          <Statistic name="good" count={counts.good} />
+          <Statistic name="neutral" count={counts.neutral} />
+          <Statistic name="bad" count={counts.bad} />
+          <Statistic name="all" count={total} />
           <Statistic name="average" count={average} />
-          <Statistic name="positive" count={positivePercentage} />
+          <Statistic name="positive" count={positivePercentage} unit="%" />
         </tbody>
       </table>
     </>
@@ -68,41 +83,13 @@ const Statistics = ({ options }) => {
 };
 
 const App = () => {
-  const [feedbackCounts, setFeedbackCounts] = useState({
-    good: 0,
-    neutral: 0,
-    bad: 0,
-  });
-
-  const handleFeedbackClick = (type) => () => {
-    setFeedbackCounts((prevCounts) => ({
-      ...prevCounts,
-      [type]: prevCounts[type] + 1,
-    }));
-  };
-
-  const feedbackOptions = [
-    {
-      name: "good",
-      count: feedbackCounts.good,
-      handleClick: handleFeedbackClick("good"),
-    },
-    {
-      name: "neutral",
-      count: feedbackCounts.neutral,
-      handleClick: handleFeedbackClick("neutral"),
-    },
-    {
-      name: "bad",
-      count: feedbackCounts.bad,
-      handleClick: handleFeedbackClick("bad"),
-    },
-  ];
+  const { counts, derivedStats, buttonOptions } = useFeedbackLogic();
 
   return (
     <div>
-      <Header name="give feedback" options={feedbackOptions} />
-      <Statistics options={feedbackOptions} />
+      <Header name="give feedback" />
+      <Buttons options={buttonOptions} />
+      <Statistics counts={counts} derivedStats={derivedStats} />
     </div>
   );
 };
