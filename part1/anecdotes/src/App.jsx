@@ -2,6 +2,13 @@ import { useState } from "react";
 
 const getRandomIndex = (max) => Math.floor(Math.random() * max);
 
+const Button = ({ onClick, name }) => <button onClick={onClick}>{name}</button>;
+
+const Buttons = ({ options }) =>
+  options.map(({ name, handle }) => (
+    <Button key={name} onClick={handle} name={name} />
+  ));
+
 const App = () => {
   const anecdotes = [
     "If it hurts, do it more often.",
@@ -13,6 +20,10 @@ const App = () => {
     "Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.",
     "The only way to go fast, is to go well.",
   ];
+
+  const [votes, setVotes] = useState(() =>
+    Object.fromEntries(anecdotes.map((_, idx) => [idx, 0]))
+  );
 
   const [selected, setSelected] = useState(() =>
     getRandomIndex(anecdotes.length)
@@ -28,10 +39,23 @@ const App = () => {
     setSelected(newSelected);
   };
 
+  const handleVote = (selected) => {
+    setVotes((prev) => ({
+      ...prev,
+      [selected]: prev[selected] + 1,
+    }));
+  };
+
+  const buttonOptions = [
+    { name: "vote", handle: () => handleVote(selected) },
+    { name: "Get new anecdote", handle: handleNewAnecdote },
+  ];
+
   return (
     <>
-      <button onClick={handleNewAnecdote}>Get new anecdote</button>
+      <Buttons options={buttonOptions} />
       <div>{anecdotes[selected]}</div>
+      <div>has {votes[selected]} votes</div>
     </>
   );
 };
