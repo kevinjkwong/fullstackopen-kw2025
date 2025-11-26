@@ -51,11 +51,19 @@ const App = () => {
     { name: "Get new anecdote", handle: handleNewAnecdote },
   ];
 
+  const anecdoteWithMostVotes = () => {
+    return Object.keys(votes).reduce((keyWithMaxValue, currentKey) => votes[keyWithMaxValue] > votes[currentKey] ? keyWithMaxValue : currentKey)
+  }
+
+
   return (
     <>
-      <Buttons options={buttonOptions} />
+      <h1>Anecdote of the day</h1>
       <div>{anecdotes[selected]}</div>
       <div>has {votes[selected]} votes</div>
+      <Buttons options={buttonOptions} />
+      <h2>Anecdote with the most votes</h2>
+      {anecdotes[anecdoteWithMostVotes()]}
     </>
   );
 };
